@@ -1,0 +1,8 @@
+[package]
+name = "lawdoc-gen"
+version = "0.1.0"
+authors = ["yeahnoob <yeahnoob@buaa.edu.cn>"]
+
+[dependencies]
+rustc-serialize = "^0.3.18"
+mustache = "^0.8"
