@@ -1,48 +1,37 @@
 extern crate mustache;
 extern crate rustc_serialize;
+extern crate serde_yaml;
 
 use std::io;
-use mustache::{MapBuilder, Template, Data};
+use std::io::Read;
+use std::fs::File;
+use std::collections::HashMap;
+use mustache::MapBuilder;
 
-#[derive(RustcEncodable)]
-struct Planet {
-    name: String,
-    sex: String,
-}
+fn read_string_from_file(filename: &str) -> Result<String, io::Error> {
+    let mut f = File::open(filename)?;
+    let mut s = String::new();
 
-fn data_stdout(tp: &Template, dp: &Data) {
-    println!("===");
-    tp.render_data(&mut io::stdout(), &dp).unwrap();
-    println!();
-}
+    f.read_to_string(&mut s)?;
 
-fn planet_stdout(tp: &Template, dp: &Planet) {
-    println!("===");
-    tp.render(&mut io::stdout(), &dp).unwrap();
-    println!();
+    Ok(s)
 }
 
 fn main() {
-    // read the template
-    let tp = mustache::compile_str("用户: {{name}}\n性别: {{sex}}").unwrap();
-    // fill contents
-    let planet = Planet {
-        name: "刘於凤".into(),
-        sex: "女".into(),
-    };
-    // get result from the above contents & template
-    println!(" * 生成结果 *");
-    planet_stdout(&tp, &planet);
+    // get the template
+    let tp = mustache::compile_str(&(read_string_from_file("./examples/t1.mustache").unwrap()))
+        .unwrap();
 
-    // closures
-    let mut names = vec!["甲", "乙", "丙"];
-    let mut sexs = vec!["男", "男", "女"];
-    let data = MapBuilder::new()
-        .insert_fn("name", move |_| names.pop().unwrap().into())
-        .insert_fn("sex", move |_| sexs.pop().unwrap().into())
-        .build();
+    // read from YAML, fill every elements
+    let de_map: HashMap<String, String> =
+        serde_yaml::from_str(&(read_string_from_file("./examples/persons.yaml").unwrap())).unwrap();
 
-    data_stdout(&tp, &data);
-    data_stdout(&tp, &data);
-    data_stdout(&tp, &data);
+    // print out result from the above contents & template
+    println!(" * 合同生成 *");
+    let mut mapdata = MapBuilder::new();
+    for (id, text_content) in &de_map {
+        mapdata = mapdata.insert_str(id, text_content);
+    }
+    tp.render_data(&mut io::stdout(), &(mapdata.build())).unwrap();
+    println!("");
 }

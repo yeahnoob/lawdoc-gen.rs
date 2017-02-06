@@ -6,3 +6,5 @@ authors = ["yeahnoob <yeahnoob@buaa.edu.cn>"]
 [dependencies]
 rustc-serialize = "^0.3.18"
 mustache = "^0.8"
+serde = "^0.8"
+serde_yaml = "^0.5"
